@@ -1,5 +1,7 @@
 package thesis.rommler.federation_controller.api.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -10,6 +12,8 @@ import java.nio.charset.StandardCharsets;
 
 @Service
 public class FileTransferService {
+
+    private static final Logger logger = LoggerFactory.getLogger(FileTransferService.class);
 
     private Socket socket;
 
@@ -52,7 +56,7 @@ public class FileTransferService {
                 }
 
                 fileOutputStream.close();
-                System.out.println("File received: F:\\Masterarbeit_Gits\\federation_controller\\Asset_Output\\output.zip");
+                logger.info("File received: F:\\Masterarbeit_Gits\\federation_controller\\Asset_Output\\output.zip");
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -63,7 +67,7 @@ public class FileTransferService {
     private void ConnectToSocket(String requestIp, int socketPort){
         try {
             socket = new Socket(requestIp, socketPort);
-            System.out.println("Connected to socket.");
+            logger.info("Connected to socket.");
             CollectFiles();
         } catch (Exception e) {
             e.printStackTrace();
