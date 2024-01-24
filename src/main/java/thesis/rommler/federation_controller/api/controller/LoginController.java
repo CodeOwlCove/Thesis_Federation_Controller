@@ -23,4 +23,9 @@ public class LoginController {
             return "ok";
         return "error";
     }
+
+    @GetMapping("/ping")
+    public String Ping(){
+        return "{\"message\": \"pong\"}";
+    }
 }
