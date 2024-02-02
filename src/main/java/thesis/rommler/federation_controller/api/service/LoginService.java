@@ -1,23 +1,17 @@
 package thesis.rommler.federation_controller.api.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import thesis.rommler.federation_controller.api.DataClasses.ConnectionData;
-import thesis.rommler.federation_controller.api.answerClasses.GetFilesAnswer;
 
-import java.io.IOError;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
-
-import static java.lang.System.exit;
 
 @Service
 public class LoginService {
@@ -46,6 +40,13 @@ public class LoginService {
     }
 
 
+    /**
+     * Logs in a new connector
+     * @param requester_ip The IP of the connector
+     * @param requester_port The port of the connector
+     * @param socket_port The port of the socket
+     * @return
+     */
     public boolean LogInNewConnector(String requester_ip, int requester_port, int socket_port){
         try {
             activeConnections.add(new ConnectionData(requester_ip, requester_port, socket_port));
@@ -81,7 +82,7 @@ public class LoginService {
         for (ConnectionData item : activeConnections) {
             //Send Ping request
             //If no response, remove from list
-            String apiUrl = "http://" + item.requester_ip + ":" + item.requester_port + "/ping";
+            String apiUrl = "http://" + item.requester_ip + ":" + item.requester_REST_port + "/ping";
 
             try {
 
@@ -89,14 +90,14 @@ public class LoginService {
                 String response = restTemplate.getForObject(apiUrl, String.class);
 
                 if (response.equals("pong")) {
-                    logger.info("- Connection on " + item.requester_ip + ":" + item.requester_port + " is still online!");
+                    logger.info("- Connection on " + item.requester_ip + ":" + item.requester_REST_port + " is still online!");
                 } else {
-                    logger.info("- Answer on " + item.requester_ip + ":" + item.requester_port + " was [" + response + "] - removing from active connections!");
+                    logger.info("- Answer on " + item.requester_ip + ":" + item.requester_REST_port + " was [" + response + "] - removing from active connections!");
                     activeConnections.remove(item);
                 }
 
             } catch (Exception e) {
-                logger.severe("- Connection on " + item.requester_ip + ":" + item.requester_port + " lost! \n" + e.getMessage());
+                logger.severe("- Connection on " + item.requester_ip + ":" + item.requester_REST_port + " lost! \n" + e.getMessage());
                 activeConnections.remove(item);
 
                 // Restart the scheduled executor service
@@ -108,7 +109,7 @@ public class LoginService {
 
     public void LogOutConnector(String requester_ip, int requester_port, int socket_port){
         for(var item : activeConnections){
-            if(item.requester_ip.equals(requester_ip) && item.requester_port == requester_port && item.socket_port == socket_port){
+            if(item.requester_ip.equals(requester_ip) && item.requester_REST_port == requester_port && item.socket_port == socket_port){
                 activeConnections.remove(item);
                 return;
             }
