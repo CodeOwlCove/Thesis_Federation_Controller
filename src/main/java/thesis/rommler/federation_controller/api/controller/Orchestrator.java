@@ -48,7 +48,7 @@ public class Orchestrator {
 
     @GetMapping("/GetFilesFrontend")
     public void getFilesFrontend(HttpServletResponse response) throws IOException {
-        String fileLocation="F:\\Masterarbeit_Gits\\federation_controller\\Assets\\Outgoing\\Outgoing.rar";
+        String fileLocation="src/main/resources/Assets/Outgoing/Outgoing.rar";
 
         File downloadFile= new File(fileLocation);
 
