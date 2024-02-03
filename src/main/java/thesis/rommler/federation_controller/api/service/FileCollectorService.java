@@ -6,13 +6,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import thesis.rommler.federation_controller.api.DataClasses.ConnectionData;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
+import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 @Service
 public class FileCollectorService {
@@ -38,6 +41,8 @@ public class FileCollectorService {
     private ArrayList<Thread> collectionThreads;
     private final RestTemplate restTemplate;
 
+    private final String incomingFolder = "src/main/resources/Incoming";
+    private final String outgoingFolder = "src/main/resources/Outgoing";
 
     public FileCollectorService(RestTemplate restTemplate){
         this.restTemplate = restTemplate;
@@ -112,6 +117,10 @@ public class FileCollectorService {
      */
     public void HandleCollectionProcesses(ArrayList<ConnectionData> activeConnections){
         logger.info("- Starting file collection process...");
+
+        logger.info("- Deleting old zip files...");
+        DeleteOldZipFiles();
+
         //Open Sockets and create Threads
         OpenSockets(activeConnections);
 
@@ -134,6 +143,106 @@ public class FileCollectorService {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+        }
+
+        RezipReceivedFiles();
+    }
+
+    /**
+     * Deletes old zip files from the incoming and outgoing folders
+     */
+    public void DeleteOldZipFiles(){
+        //Delete Old Files
+        File incomingFolderFile = new File(incomingFolder);
+        File[] incomingFiles = incomingFolderFile.listFiles();
+        for (File file : incomingFiles) {
+            if (!file.isDirectory()) {
+                file.delete();
+            }
+        }
+
+        File outgoingFolderFile = new File(outgoingFolder);
+        File[] outgoingFiles = outgoingFolderFile.listFiles();
+        for (File file : outgoingFiles) {
+            if (!file.isDirectory()) {
+                file.delete();
+            }
+        }
+    }
+
+    public void RezipReceivedFiles(){
+        // Specify the folder to be zipped
+        String sourceFolder = incomingFolder;
+        String outputFolder = outgoingFolder;
+
+        // Specify the name of the output zip file
+        String zipOutputFileName = "Outgoing.zip";
+
+        // Check if the folder exists
+        Path path = Paths.get(sourceFolder);
+        if (Files.isDirectory(path)) {
+            logger.info("The folder exists.");
+        } else {
+            logger.error("The folder does not exist.");
+            return;
+        }
+
+        try {
+            zipFolderContents(sourceFolder, outgoingFolder, zipOutputFileName);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Zips the contents of a folder
+     * @param sourceFolder The folder to be zipped
+     * @param outputFolderPath The folder where the zip file will be saved
+     * @param zipFileName The name of the zip file
+     */
+    public static void zipFolderContents(String sourceFolder, String outputFolderPath, String zipFileName) {
+        try {
+            Path outputFolder = Paths.get(outputFolderPath);
+            Files.createDirectories(outputFolder);
+
+            File sourceFolderFile = new File(sourceFolder);
+            File zipFile = new File(outputFolder.toFile(), zipFileName);
+
+            try (FileOutputStream fos = new FileOutputStream(zipFile);
+                 ZipOutputStream zos = new ZipOutputStream(fos)) {
+                zipDirectoryContents(sourceFolderFile, zos);
+            }
+
+            System.out.println("Folder contents successfully zipped to: " + zipFile.getAbsolutePath());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Zips the contents of a folder
+     * @param folder The folder to be zipped
+     * @param zos The zip output stream
+     * @throws IOException
+     */
+    private static void zipDirectoryContents(File folder, ZipOutputStream zos) throws IOException {
+        for (File file : folder.listFiles()) {
+            if (file.isDirectory()) {
+                zipDirectoryContents(file, zos);
+                continue;
+            }
+
+            FileInputStream fis = new FileInputStream(file);
+            ZipEntry zipEntry = new ZipEntry(file.getName());
+            zos.putNextEntry(zipEntry);
+
+            byte[] bytes = new byte[1024];
+            int length;
+            while ((length = fis.read(bytes)) >= 0) {
+                zos.write(bytes, 0, length);
+            }
+
+            fis.close();
         }
     }
 
@@ -165,7 +274,7 @@ public class FileCollectorService {
         try {
             logger.info("- Collecting files from " + participantSocket.getInetAddress().toString() + ":" + participantSocket.getPort() + "...");
             InputStream inputStream = participantSocket.getInputStream();
-            String outputPath = "F:\\Masterarbeit_Gits\\federation_controller\\src\\main\\resources\\Incomming\\incomming_" + collection_id + ".zip";
+            String outputPath = incomingFolder + "\\incoming_" + collection_id + ".zip";
 
             //Delete Old File
             if(new File(outputPath).exists()){
