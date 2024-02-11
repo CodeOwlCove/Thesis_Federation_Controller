@@ -46,7 +46,6 @@ public class FileCollectorService {
 
     public FileCollectorService(RestTemplate restTemplate){
         this.restTemplate = restTemplate;
-        sockets = new ArrayList<>();
         collectionThreads = new ArrayList<>();
     }
 
@@ -55,6 +54,10 @@ public class FileCollectorService {
      * @param activeConnections The list of active connections
      */
     private void OpenSockets(ArrayList<ConnectionData> activeConnections){
+        //Reset Sockets and Threads
+        sockets = new ArrayList<>();
+        collectionThreads = new ArrayList<>();
+
         int participantIndex = 0;
 
         if(activeConnections.isEmpty()){
@@ -81,7 +84,7 @@ public class FileCollectorService {
             }
         }
 
-        logger.info("- " + sockets.size() + " sockets opened.");
+        logger.info("- " + sockets.size() + " socket(s) opened.");
     }
 
     /**
@@ -111,6 +114,27 @@ public class FileCollectorService {
         }
     }
 
+    public void CheckForFolders(){
+        logger.info("- Checking for folders...");
+        Path path = Paths.get(incomingFolder);
+        if (!Files.isDirectory(path)) {
+            try {
+                Files.createDirectories(path);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        path = Paths.get(outgoingFolder);
+        if (!Files.isDirectory(path)) {
+            try {
+                Files.createDirectories(path);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     /**
      * Handles the collection of files from all participants
      * @param activeConnections The list of active connections
@@ -118,8 +142,7 @@ public class FileCollectorService {
     public void HandleCollectionProcesses(ArrayList<ConnectionData> activeConnections){
         logger.info("- Starting file collection process...");
 
-        logger.info("- Deleting old zip files...");
-        DeleteOldZipFiles();
+        CheckForFolders();
 
         //Open Sockets and create Threads
         OpenSockets(activeConnections);
@@ -152,6 +175,8 @@ public class FileCollectorService {
      * Deletes old zip files from the incoming and outgoing folders
      */
     public void DeleteOldZipFiles(){
+        logger.info("- Deleting old zip files...");
+
         //Delete Old Files
         File incomingFolderFile = new File(incomingFolder);
         File[] incomingFiles = incomingFolderFile.listFiles();

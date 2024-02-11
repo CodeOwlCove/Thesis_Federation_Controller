@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import thesis.rommler.federation_controller.api.answerClasses.GetFilesAnswer;
 import thesis.rommler.federation_controller.api.service.FileCollectorService;
+import thesis.rommler.federation_controller.api.service.FileSenderService;
 import thesis.rommler.federation_controller.api.service.FileTransferService;
 import thesis.rommler.federation_controller.api.service.LoginService;
 
@@ -23,6 +24,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import static java.lang.Thread.sleep;
+
 @RestController
 public class Orchestrator {
 
@@ -30,15 +33,18 @@ public class Orchestrator {
     private FileTransferService fileTransferService;
     private FileCollectorService fileCollectorService;
     private LoginService loginService;
+    private FileSenderService fileSenderService;
 
     private static final String FILE_PATH = "src/main/resources/Outgoing/Outgoing.zip";
 
 
     @Autowired
-    public Orchestrator(FileTransferService fileTransferService, FileCollectorService fileCollectorService, LoginService loginService){
+    public Orchestrator(FileTransferService fileTransferService, FileCollectorService fileCollectorService,
+                        LoginService loginService, FileSenderService fileSenderService){
         this.fileTransferService = fileTransferService;
         this.fileCollectorService = fileCollectorService;
         this.loginService = loginService;
+        this.fileSenderService = fileSenderService;
     }
 
     @GetMapping("/GetFiles")
@@ -60,7 +66,7 @@ public class Orchestrator {
 
     @GetMapping("/GetFilesFrontend")
     public void getFilesFrontend(HttpServletResponse response) throws IOException {
-        File downloadFile = new File(FILE_PATH);
+
 
         //Collect files from all connected Backend Clients
         System.out.println("Starting file transfer");
@@ -71,23 +77,12 @@ public class Orchestrator {
             logger.error("Error while collecting files: " + e.getMessage());
         }
 
-        // Send file to frontend
-        byte[] isr = Files.readAllBytes(downloadFile.toPath());
-        ByteArrayOutputStream out = new ByteArrayOutputStream(isr.length);
-        out.write(isr, 0, isr.length);
-
-        response.setContentType("application/rar");
-        // Use 'inline' for preview and 'attachement' for download in browser.
-        response.addHeader("Content-Disposition", "inline; filename=" + "Outgoing.rar");
-
-        OutputStream os;
         try {
-            os = response.getOutputStream();
-            out.writeTo(os);
-            os.flush();
-            os.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+            fileSenderService.SendAllFilesToFrontend(response);
+        } catch (Exception e){
+            logger.error("Error while sending files to frontend: " + e.getMessage());
+        } finally {
+            fileCollectorService.DeleteOldZipFiles();
         }
     }
 
