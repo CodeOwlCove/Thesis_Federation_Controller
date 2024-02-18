@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
-import thesis.rommler.federation_controller.api.service.FileCollectorService;
+import thesis.rommler.federation_controller.api.service.FileCollector.AllFileCollectorService;
 import thesis.rommler.federation_controller.api.service.FileTransferService;
 import thesis.rommler.federation_controller.api.service.LoginService;
 
@@ -14,15 +14,15 @@ public class DebugController {
 
     private FileTransferService fileTransferService;
     private LoginService loginService;
-    private FileCollectorService fileCollectorService;
+    private AllFileCollectorService allFileCollectorService;
     private static final Logger logger = LoggerFactory.getLogger(DebugController.class);
 
 
     @Autowired
-    public DebugController(FileTransferService fileTransferService, LoginService loginService, FileCollectorService fileCollectorService){
+    public DebugController(FileTransferService fileTransferService, LoginService loginService, AllFileCollectorService allFileCollectorService){
         this.fileTransferService = fileTransferService;
         this.loginService = loginService;
-        this.fileCollectorService = fileCollectorService;
+        this.allFileCollectorService = allFileCollectorService;
     }
 
     @GetMapping("/debug1")
@@ -30,7 +30,7 @@ public class DebugController {
         //Collect files from all connected Backend Clients
         System.out.println("Starting file transfer");
         try {
-            fileCollectorService.HandleCollectionProcesses(loginService.activeConnections);
+            allFileCollectorService.HandleCollectionProcesses(loginService.activeConnections);
             logger.info("- File collection finished...");
             return "OK...";
         }catch (Exception e){
@@ -42,7 +42,7 @@ public class DebugController {
     @GetMapping("/debug2")
     public void Debug2(){
         try {
-            fileCollectorService.RezipReceivedFiles();
+            allFileCollectorService.RezipReceivedFiles();
         }catch (Exception e){
             System.out.println("Error while re-zipping files: " + e.getMessage());
         }
