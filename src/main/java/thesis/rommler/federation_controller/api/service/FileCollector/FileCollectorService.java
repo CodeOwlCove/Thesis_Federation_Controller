@@ -204,7 +204,7 @@ public class FileCollectorService {
             logger.info("Bytes read: " + bytesRead);
 
             if(totalBytesRead > threshold){
-                //threshold += 1000000;
+                threshold += 1000000;
                 logger.info("Progress: " + totalBytesRead + " Bytes read from [" + participantSocket.getInetAddress().toString() + ":" + participantSocket.getPort() + "].");
             }
 

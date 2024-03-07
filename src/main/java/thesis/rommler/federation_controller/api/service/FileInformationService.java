@@ -12,19 +12,20 @@ import java.util.ArrayList;
 @Service
 public class FileInformationService {
 
-    private final LoginService loginService;
+    private final ConnectionService connectionService;
     private final RestTemplate restTemplate;
 
-    public FileInformationService(LoginService loginService, RestTemplate restTemplate){
-        this.loginService = loginService;
+    public FileInformationService(ConnectionService connectionService, RestTemplate restTemplate){
+        this.connectionService = connectionService;
         this.restTemplate = restTemplate;
     }
 
     public ArrayList<FileInformation> CollectFileInformation() {
         ArrayList<FileInformation> fileInformationList = new ArrayList<>();
 
-        for (ConnectionData data : loginService.activeConnections){
+        for (ConnectionData data : connectionService.activeConnections){
             String apiUrl = "http://" + data.requester_ip + ":" + data.requester_REST_port + "/GetFileInformation";
+            System.out.println("Collecting file information from: " + data.requester_ip + ":" + data.requester_REST_port + "...");
 
             try {
 
@@ -35,6 +36,8 @@ public class FileInformationService {
                         null,
                         new ParameterizedTypeReference<ArrayList<FileInformation>>() {}
                 );
+
+                System.out.println("Response: " + responseEntity.toString());
 
                 ArrayList<FileInformation> result = responseEntity.getBody();
 
@@ -55,7 +58,8 @@ public class FileInformationService {
         }
 
 
-
+        System.out.println("File information collected from all participants.");
+        System.out.println("File information list: " + fileInformationList.toString());
         return fileInformationList;
     }
 }

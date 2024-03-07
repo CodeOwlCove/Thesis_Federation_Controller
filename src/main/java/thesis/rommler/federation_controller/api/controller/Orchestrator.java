@@ -26,7 +26,7 @@ public class Orchestrator {
     private AllFileCollectorService allFileCollectorService;
     private SelectedFileCollectorService selectedFileCollectorService;
     private ContractFileCollectorService contractFileCollectorService;
-    private LoginService loginService;
+    private ConnectionService connectionService;
     private FileSenderService fileSenderService;
 
     private static final String FILE_PATH = "src/main/resources/Outgoing/Outgoing.zip";
@@ -34,12 +34,12 @@ public class Orchestrator {
 
     @Autowired
     public Orchestrator(FileTransferService fileTransferService, AllFileCollectorService allFileCollectorService,
-                        LoginService loginService, FileSenderService fileSenderService,
+                        ConnectionService connectionService, FileSenderService fileSenderService,
                         SelectedFileCollectorService selectedFileCollectorService,
                         ContractFileCollectorService contractFileCollectorService){
         this.fileTransferService = fileTransferService;
         this.allFileCollectorService = allFileCollectorService;
-        this.loginService = loginService;
+        this.connectionService = connectionService;
         this.fileSenderService = fileSenderService;
         this.selectedFileCollectorService = selectedFileCollectorService;
         this.contractFileCollectorService = contractFileCollectorService;
@@ -67,7 +67,7 @@ public class Orchestrator {
         //Collect files from all connected Backend Clients
         System.out.println("Starting file transfer");
         try {
-            allFileCollectorService.HandleCollectionProcesses(loginService.activeConnections);
+            allFileCollectorService.HandleCollectionProcesses(connectionService.activeConnections);
             logger.info("- File collection finished...");
         }catch (Exception e){
             logger.error("Error while collecting files: " + e.getMessage());
@@ -78,7 +78,7 @@ public class Orchestrator {
         } catch (Exception e){
             logger.error("Error while sending files to frontend: " + e.getMessage());
         } finally {
-            allFileCollectorService.DeleteOldZipFiles();
+            //allFileCollectorService.DeleteOldZipFiles();
         }
     }
 
@@ -91,7 +91,7 @@ public class Orchestrator {
         //Collect files from all connected Backend Clients
         System.out.println("Starting selected file transfer");
         try {
-            selectedFileCollectorService.HandleCollectionProcesses(loginService.activeConnections, selectedFiles);
+            selectedFileCollectorService.HandleCollectionProcesses(connectionService.activeConnections, selectedFiles);
             logger.info("- File collection finished...");
         }catch (Exception e){
             logger.error("Error while collecting files: " + e.getMessage());
@@ -102,7 +102,7 @@ public class Orchestrator {
         } catch (Exception e){
             logger.error("Error while sending files to frontend: " + e.getMessage());
         } finally {
-            allFileCollectorService.DeleteOldZipFiles();
+            //allFileCollectorService.DeleteOldZipFiles();
         }
     }
 
@@ -115,7 +115,7 @@ public class Orchestrator {
         //Collect files from all connected Backend Clients
         System.out.println("Starting collecting Contract file");
         try {
-            contractFileCollectorService.HandleCollectionProcesses(loginService.activeConnections, selectedFiles);
+            contractFileCollectorService.HandleCollectionProcesses(connectionService.activeConnections, selectedFiles);
             logger.info("- File collection finished...");
         }catch (Exception e){
             logger.error("Error while collecting files: " + e.getMessage());
@@ -126,14 +126,8 @@ public class Orchestrator {
         } catch (Exception e){
             logger.error("Error while sending files to frontend: " + e.getMessage());
         } finally {
-            allFileCollectorService.DeleteOldZipFiles();
+            //allFileCollectorService.DeleteOldZipFiles();
         }
-    }
-
-
-    @GetMapping("/Ping")
-    public String Ping(){
-        return "pong";
     }
 
 }

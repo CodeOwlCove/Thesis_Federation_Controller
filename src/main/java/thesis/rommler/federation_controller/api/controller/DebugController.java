@@ -7,21 +7,21 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import thesis.rommler.federation_controller.api.service.FileCollector.AllFileCollectorService;
 import thesis.rommler.federation_controller.api.service.FileTransferService;
-import thesis.rommler.federation_controller.api.service.LoginService;
+import thesis.rommler.federation_controller.api.service.ConnectionService;
 
 @RestController
 public class DebugController {
 
     private FileTransferService fileTransferService;
-    private LoginService loginService;
+    private ConnectionService connectionService;
     private AllFileCollectorService allFileCollectorService;
     private static final Logger logger = LoggerFactory.getLogger(DebugController.class);
 
 
     @Autowired
-    public DebugController(FileTransferService fileTransferService, LoginService loginService, AllFileCollectorService allFileCollectorService){
+    public DebugController(FileTransferService fileTransferService, ConnectionService connectionService, AllFileCollectorService allFileCollectorService){
         this.fileTransferService = fileTransferService;
-        this.loginService = loginService;
+        this.connectionService = connectionService;
         this.allFileCollectorService = allFileCollectorService;
     }
 
@@ -30,7 +30,7 @@ public class DebugController {
         //Collect files from all connected Backend Clients
         System.out.println("Starting file transfer");
         try {
-            allFileCollectorService.HandleCollectionProcesses(loginService.activeConnections);
+            allFileCollectorService.HandleCollectionProcesses(connectionService.activeConnections);
             logger.info("- File collection finished...");
             return "OK...";
         }catch (Exception e){

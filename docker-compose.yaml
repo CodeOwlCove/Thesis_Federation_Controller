@@ -1,0 +1,75 @@
+version: '3'
+services:
+  connector:
+    ports:
+      - "12080:12080"
+      - "10080:10080"
+    build: .
+    networks:
+      - backend
+
+  backend1:
+    build:
+      context: ../federation_connector
+      dockerfile: Dockerfile
+    networks:
+      - backend
+    depends_on:
+      connector:
+        condition: service_started
+    environment:
+      - SERVER_PORT=7080
+      - CONTROLLER_PORT=12080
+      - SOCKET_PORT=10080
+      - CONTROLLER_IP=connector
+      - ASSET_FOLDER_PATH=/Assets
+      - CONTRACT_FOLDER_PATH=/Contracts
+      - CONTRACT_FILE_PATH=/Contract_Config.json
+
+  backend2:
+    build:
+      context: ../federation_connector
+      dockerfile: Dockerfile
+    networks:
+      - backend
+    depends_on:
+      connector:
+        condition: service_started
+    environment:
+      - SERVER_PORT=7081
+      - CONTROLLER_PORT=12080
+      - SOCKET_PORT=10080
+      - CONTROLLER_IP=connector
+      - ASSET_FOLDER_PATH=/Assets
+      - CONTRACT_FOLDER_PATH=/Contracts
+      - CONTRACT_FILE_PATH=/Contract_Config.json
+
+  backend3:
+    build:
+      context: ../federation_connector
+      dockerfile: Dockerfile
+    networks:
+      - backend
+    depends_on:
+      connector:
+        condition: service_started
+    environment:
+      - SERVER_PORT=7082
+      - CONTROLLER_PORT=12080
+      - SOCKET_PORT=10080
+      - CONTROLLER_IP=connector
+      - ASSET_FOLDER_PATH=/Assets
+      - CONTRACT_FOLDER_PATH=/Contracts
+      - CONTRACT_FILE_PATH=/Contract_Config.json
+
+  frontend:
+    build:
+      context: ../user_interface
+      dockerfile: Dockerfile
+    ports:
+      - "4200:4200"
+    networks:
+      - backend
+
+networks:
+  backend:
