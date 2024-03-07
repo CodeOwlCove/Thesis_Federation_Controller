@@ -174,65 +174,58 @@ public class FileCollectorService {
      * @param collection_id The id of the collection
      */
     void CollectFiles(Socket participantSocket, int collection_id, ConnectionData connection){
-        try {
-            logger.info("- Collecting files from " + participantSocket.getInetAddress().toString() + ":" + participantSocket.getPort() + "...");
-            InputStream inputStream = participantSocket.getInputStream();
-            String outputPath = incomingFolder + "\\incoming_" + collection_id + ".zip";
+    try {
+        logger.info("- Collecting files from " + participantSocket.getInetAddress().toString() + ":" + participantSocket.getPort() + "...");
+        InputStream inputStream = participantSocket.getInputStream();
+        String outputPath = incomingFolder + "\\incoming_" + collection_id + ".zip";
 
-            //Delete Old File
-            if(new File(outputPath).exists()){
-                new File(outputPath).delete();
-            }
-
-            // Read file content
-            FileOutputStream fileOutputStream = new FileOutputStream(outputPath);
-            byte[] buffer = new byte[1024];
-            int bytesRead;
-            int totalBytesRead = 0;
-            int threshold = 0;
-            while ((bytesRead = inputStream.read(buffer)) != -1) {
-
-                /*
-
-                // Check for the end of the file content using a delimiter
-                String data = new String(buffer, 0, bytesRead, StandardCharsets.UTF_8);
-                if (data.contains("EOF")) {
-                    break; // Stop reading when "END_OF_FILE" is received
-                }
-                 */
-
-                // Define the end-of-file marker as a byte array
-                byte[] eofMarker = "End_Of_File".getBytes(StandardCharsets.UTF_8);
-                if (endsWith(buffer, bytesRead, eofMarker)) {
-                    break; // Stop reading when the end-of-file marker is received
-                }
-
-                fileOutputStream.write(buffer, 0, bytesRead);
-                totalBytesRead += bytesRead;
-
-                if(totalBytesRead > threshold){
-                    threshold += 1000000;
-                    logger.info("Progress: " + totalBytesRead + " MB read from [" + participantSocket.getInetAddress().toString() + ":" + participantSocket.getPort() + "].");
-                }
-
-            }
-            logger.info("Bytes read: " + totalBytesRead);
-
-            inputStream.close();
-            fileOutputStream.close();
-
-            logger.info("File received: " + incomingFolder + collection_id + ".zip");
-
-            if(RequestCloseSocket(connection, connection.socket_port)){
-                logger.info("- Socket closed on " + connection.requester_ip + ":" + connection.socket_port + ".");
-            }else{
-                logger.info("- Socket could not be closed on " + connection.requester_ip + ":" + connection.socket_port + ".");
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
+        //Delete Old File
+        if(new File(outputPath).exists()){
+            new File(outputPath).delete();
         }
+
+        // Read file content
+        FileOutputStream fileOutputStream = new FileOutputStream(outputPath);
+        byte[] buffer = new byte[1024];
+        int bytesRead;
+        int totalBytesRead = 0;
+        int threshold = 0;
+        while ((bytesRead = inputStream.read(buffer)) != -1) {
+            totalBytesRead += bytesRead;
+
+            fileOutputStream.write(buffer, 0, bytesRead);
+
+            // Define the end-of-file marker as a byte array
+            byte[] eofMarker = "End_Of_File".getBytes(StandardCharsets.UTF_8);
+            if (endsWith(buffer, bytesRead, eofMarker)) {
+                break; // Stop reading when the end-of-file marker is received
+            }
+
+            logger.info("Bytes read: " + bytesRead);
+
+            if(totalBytesRead > threshold){
+                //threshold += 1000000;
+                logger.info("Progress: " + totalBytesRead + " Bytes read from [" + participantSocket.getInetAddress().toString() + ":" + participantSocket.getPort() + "].");
+            }
+
+        }
+        logger.info("Bytes read: " + totalBytesRead);
+
+        inputStream.close();
+        fileOutputStream.close();
+
+        logger.info("File received: " + incomingFolder + collection_id + ".zip");
+
+        if(RequestCloseSocket(connection, connection.socket_port)){
+            logger.info("- Socket closed on " + connection.requester_ip + ":" + connection.socket_port + ".");
+        }else{
+            logger.info("- Socket could not be closed on " + connection.requester_ip + ":" + connection.socket_port + ".");
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace();
     }
+}
 
     public boolean RequestCloseSocket(ConnectionData connection, int socketPort){
         logger.info("- Requesting socket close on " + connection.requester_ip + ":" + socketPort + ".");

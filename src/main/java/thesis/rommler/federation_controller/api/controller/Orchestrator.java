@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import thesis.rommler.federation_controller.api.answerClasses.GetFilesAnswer;
 import thesis.rommler.federation_controller.api.service.*;
 import thesis.rommler.federation_controller.api.service.FileCollector.AllFileCollectorService;
+import thesis.rommler.federation_controller.api.service.FileCollector.ContractFileCollectorService;
 import thesis.rommler.federation_controller.api.service.FileCollector.SelectedFileCollectorService;
 
 import java.io.*;
@@ -24,6 +25,7 @@ public class Orchestrator {
     private FileTransferService fileTransferService;
     private AllFileCollectorService allFileCollectorService;
     private SelectedFileCollectorService selectedFileCollectorService;
+    private ContractFileCollectorService contractFileCollectorService;
     private LoginService loginService;
     private FileSenderService fileSenderService;
 
@@ -33,12 +35,14 @@ public class Orchestrator {
     @Autowired
     public Orchestrator(FileTransferService fileTransferService, AllFileCollectorService allFileCollectorService,
                         LoginService loginService, FileSenderService fileSenderService,
-                        SelectedFileCollectorService selectedFileCollectorService){
+                        SelectedFileCollectorService selectedFileCollectorService,
+                        ContractFileCollectorService contractFileCollectorService){
         this.fileTransferService = fileTransferService;
         this.allFileCollectorService = allFileCollectorService;
         this.loginService = loginService;
         this.fileSenderService = fileSenderService;
         this.selectedFileCollectorService = selectedFileCollectorService;
+        this.contractFileCollectorService = contractFileCollectorService;
     }
 
     @GetMapping("/GetFiles")
@@ -101,6 +105,31 @@ public class Orchestrator {
             allFileCollectorService.DeleteOldZipFiles();
         }
     }
+
+    @PostMapping("/GetContract")
+    public void GetContract(@RequestBody Map<String, String> requestBody, HttpServletResponse response){
+        String selectedFiles = requestBody.get("selectedFiles");
+
+        System.out.println("Selected files: " + selectedFiles);
+
+        //Collect files from all connected Backend Clients
+        System.out.println("Starting collecting Contract file");
+        try {
+            contractFileCollectorService.HandleCollectionProcesses(loginService.activeConnections, selectedFiles);
+            logger.info("- File collection finished...");
+        }catch (Exception e){
+            logger.error("Error while collecting files: " + e.getMessage());
+        }
+
+        try {
+            fileSenderService.SendAllFilesToFrontend(response);
+        } catch (Exception e){
+            logger.error("Error while sending files to frontend: " + e.getMessage());
+        } finally {
+            allFileCollectorService.DeleteOldZipFiles();
+        }
+    }
+
 
     @GetMapping("/Ping")
     public String Ping(){
