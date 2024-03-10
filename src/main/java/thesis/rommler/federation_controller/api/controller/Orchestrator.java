@@ -65,7 +65,6 @@ public class Orchestrator {
     @GetMapping("/GetAllFilesFrontend")
     public void getAllFilesFrontend(HttpServletResponse response) throws IOException {
         //Collect files from all connected Backend Clients
-        System.out.println("Starting file transfer");
         try {
             allFileCollectorService.HandleCollectionProcesses(connectionService.activeConnections);
             logger.info("- File collection finished...");
@@ -78,7 +77,7 @@ public class Orchestrator {
         } catch (Exception e){
             logger.error("Error while sending files to frontend: " + e.getMessage());
         } finally {
-            //allFileCollectorService.DeleteOldZipFiles();
+            allFileCollectorService.DeleteOldZipFiles();
         }
     }
 
@@ -86,10 +85,9 @@ public class Orchestrator {
     public void getSelectedFilesFrontend(@RequestBody Map<String, String[]> requestBody, HttpServletResponse response){
         String[] selectedFiles = requestBody.get("selectedFiles");
 
-        logger.info("- Selected files: " + Arrays.toString(selectedFiles));
+        logger.info("- Start selected file transfer with files: " + Arrays.toString(selectedFiles));
 
         //Collect files from all connected Backend Clients
-        System.out.println("Starting selected file transfer");
         try {
             selectedFileCollectorService.HandleCollectionProcesses(connectionService.activeConnections, selectedFiles);
             logger.info("- File collection finished...");
@@ -102,7 +100,7 @@ public class Orchestrator {
         } catch (Exception e){
             logger.error("Error while sending files to frontend: " + e.getMessage());
         } finally {
-            //allFileCollectorService.DeleteOldZipFiles();
+            allFileCollectorService.DeleteOldZipFiles();
         }
     }
 
@@ -110,10 +108,9 @@ public class Orchestrator {
     public void GetContract(@RequestBody Map<String, String> requestBody, HttpServletResponse response){
         String selectedFiles = requestBody.get("selectedFiles");
 
-        System.out.println("Selected files: " + selectedFiles);
+        logger.info("Request Contract: " + selectedFiles);
 
         //Collect files from all connected Backend Clients
-        System.out.println("Starting collecting Contract file");
         try {
             contractFileCollectorService.HandleCollectionProcesses(connectionService.activeConnections, selectedFiles);
             logger.info("- File collection finished...");
@@ -126,7 +123,7 @@ public class Orchestrator {
         } catch (Exception e){
             logger.error("Error while sending files to frontend: " + e.getMessage());
         } finally {
-            //allFileCollectorService.DeleteOldZipFiles();
+            allFileCollectorService.DeleteOldZipFiles();
         }
     }
 

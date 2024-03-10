@@ -40,7 +40,7 @@ services:
       - CONTROLLER_PORT=12080
       - SOCKET_PORT=10080
       - CONTROLLER_IP=connector
-      - ASSET_FOLDER_PATH=/Assets
+      - ASSET_FOLDER_PATH=/Assets1
       - CONTRACT_FOLDER_PATH=/Contracts
       - CONTRACT_FILE_PATH=/Contract_Config.json
 
@@ -58,7 +58,7 @@ services:
       - CONTROLLER_PORT=12080
       - SOCKET_PORT=10080
       - CONTROLLER_IP=connector
-      - ASSET_FOLDER_PATH=/Assets
+      - ASSET_FOLDER_PATH=/Assets2
       - CONTRACT_FOLDER_PATH=/Contracts
       - CONTRACT_FILE_PATH=/Contract_Config.json
 

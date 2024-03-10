@@ -74,24 +74,14 @@ public class FileCollectorService {
     }
 
     public void RezipReceivedFiles(){
-        // Specify the folder to be zipped
-        String sourceFolder = incomingFolder;
-        String outputFolder = outgoingFolder;
-
         // Specify the name of the output zip file
         String zipOutputFileName = "Outgoing.zip";
 
         // Check if the folder exists
-        Path path = Paths.get(sourceFolder);
-        if (Files.isDirectory(path)) {
-            logger.info("The folder exists.");
-        } else {
-            logger.error("The folder does not exist.");
-            return;
-        }
+        Path path = Paths.get(incomingFolder);
 
         try {
-            zipFolderContents(sourceFolder, outgoingFolder, zipOutputFileName);
+            zipFolderContents(incomingFolder, outgoingFolder, zipOutputFileName);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -116,7 +106,6 @@ public class FileCollectorService {
                 zipDirectoryContents(sourceFolderFile, zos);
             }
 
-            System.out.println("Folder contents successfully zipped to: " + zipFile.getAbsolutePath());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -177,7 +166,8 @@ public class FileCollectorService {
     try {
         logger.info("- Collecting files from " + participantSocket.getInetAddress().toString() + ":" + participantSocket.getPort() + "...");
         InputStream inputStream = participantSocket.getInputStream();
-        String outputPath = incomingFolder + "\\incoming_" + collection_id + ".zip";
+
+        String outputPath = Paths.get(incomingFolder, "incoming_" + collection_id + ".zip").toString();
 
         //Delete Old File
         if(new File(outputPath).exists()){
@@ -201,15 +191,12 @@ public class FileCollectorService {
                 break; // Stop reading when the end-of-file marker is received
             }
 
-            logger.info("Bytes read: " + bytesRead);
-
             if(totalBytesRead > threshold){
                 threshold += 1000000;
                 logger.info("Progress: " + totalBytesRead + " Bytes read from [" + participantSocket.getInetAddress().toString() + ":" + participantSocket.getPort() + "].");
             }
 
         }
-        logger.info("Bytes read: " + totalBytesRead);
 
         inputStream.close();
         fileOutputStream.close();

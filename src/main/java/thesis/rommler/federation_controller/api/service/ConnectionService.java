@@ -51,6 +51,8 @@ public class ConnectionService {
         try {
             activeConnections.add(new ConnectionData(requester_ip, requester_port, socket_port));
             logger.info("- New connection logged on: " + requester_ip + ":" + requester_port + ".");
+            logger.info("Current active connections: " + activeConnections.size() + ".");
+            logger.info("Active connections: " + activeConnections.toString());
             return true;
         } catch (Exception e){
             return false;
@@ -79,6 +81,8 @@ public class ConnectionService {
             return;
         }
 
+        logger.info("---------------------------------");
+
         for (ConnectionData item : activeConnections) {
             //Send Ping request
             //If no response, remove from list
@@ -105,6 +109,8 @@ public class ConnectionService {
                 scheduledExecutorService.scheduleAtFixedRate(this::CheckActiveConnections, initialCheckDelay, retryDelay, TimeUnit.SECONDS);
             }
         }
+
+        logger.info("---------------------------------");
     }
 
     public boolean LogOutConnection(String requester_ip, int requester_port){

@@ -28,7 +28,6 @@ public class DebugController {
     @GetMapping("/debug1")
     public String Debug1(){
         //Collect files from all connected Backend Clients
-        System.out.println("Starting file transfer");
         try {
             allFileCollectorService.HandleCollectionProcesses(connectionService.activeConnections);
             logger.info("- File collection finished...");
@@ -44,7 +43,7 @@ public class DebugController {
         try {
             allFileCollectorService.RezipReceivedFiles();
         }catch (Exception e){
-            System.out.println("Error while re-zipping files: " + e.getMessage());
+            logger.error("Error while re-zipping files: " + e.getMessage());
         }
     }
 

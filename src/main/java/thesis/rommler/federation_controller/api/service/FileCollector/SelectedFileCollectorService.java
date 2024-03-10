@@ -105,8 +105,8 @@ public class SelectedFileCollectorService extends FileCollectorService{
 
         CheckForFolders();
 
-        //Open Sockets and create Threads
-        OpenSockets(activeConnections, fileNames);
+        //Open Sockets and create Threads (only on participants that have at least one requested file)
+        OpenSockets(filterConnections(activeConnections, fileNames), fileNames);
 
         logger.info("- Starting file collection threads...");
 
@@ -127,5 +127,33 @@ public class SelectedFileCollectorService extends FileCollectorService{
         }
 
         RezipReceivedFiles();
+    }
+
+    //Makes a
+    public ArrayList<ConnectionData> filterConnections(ArrayList<ConnectionData> activeConnections, String[] fileNames){
+
+        var filteredConnections = new ArrayList<ConnectionData>();
+        RestTemplate restTemplate = new RestTemplate();
+
+        for(var connection : activeConnections){
+
+            String fileNamesString = String.join(",", fileNames);
+            String url = "http://" + connection.requester_ip + ":" + connection.requester_REST_port + "/CheckIfHasFile?fileNames=" + fileNamesString;
+
+            try {
+                // Make a GET request and handle the response
+                Boolean response = restTemplate.getForObject(url, Boolean.class);
+
+                if (Boolean.TRUE.equals(response)) {
+                    filteredConnections.add(connection);
+                }
+
+            } catch (Exception e) {
+                // Handle exceptions
+                System.out.println("An error occurred: " + e.getMessage());
+            }
+        }
+
+        return filteredConnections;
     }
 }

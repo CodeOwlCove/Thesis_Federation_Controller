@@ -52,7 +52,7 @@ public class FileTransferService {
 
                     fileOutputStream.write(buffer, 0, bytesRead);
                     totalBytesRead += bytesRead;
-                    System.out.println("Progress: " + totalBytesRead + " bytes read");
+                    logger.info("Progress: " + totalBytesRead + " bytes read");
                 }
 
                 fileOutputStream.close();

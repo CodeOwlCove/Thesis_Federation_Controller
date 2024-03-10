@@ -1,16 +1,21 @@
 package thesis.rommler.federation_controller.api.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import thesis.rommler.federation_controller.api.DataClasses.ConnectionData;
 import thesis.rommler.federation_controller.api.answerClasses.FileInformation;
+import thesis.rommler.federation_controller.api.controller.FileInformationController;
 
 import java.util.ArrayList;
 
 @Service
 public class FileInformationService {
+
+    private static final Logger logger = LoggerFactory.getLogger(FileInformationService.class);
 
     private final ConnectionService connectionService;
     private final RestTemplate restTemplate;
@@ -25,7 +30,7 @@ public class FileInformationService {
 
         for (ConnectionData data : connectionService.activeConnections){
             String apiUrl = "http://" + data.requester_ip + ":" + data.requester_REST_port + "/GetFileInformation";
-            System.out.println("Collecting file information from: " + data.requester_ip + ":" + data.requester_REST_port + "...");
+            logger.info("Collecting file information from: " + data.requester_ip + ":" + data.requester_REST_port + "...");
 
             try {
 
@@ -36,8 +41,6 @@ public class FileInformationService {
                         null,
                         new ParameterizedTypeReference<ArrayList<FileInformation>>() {}
                 );
-
-                System.out.println("Response: " + responseEntity.toString());
 
                 ArrayList<FileInformation> result = responseEntity.getBody();
 
@@ -52,14 +55,12 @@ public class FileInformationService {
 
 
             } catch (Exception e) {
-                System.out.println("Error while collecting file information from " + data.requester_ip + ":" + data.requester_REST_port + ": " + e.getMessage());
+                logger.error("Error while collecting file information from " + data.requester_ip + ":" + data.requester_REST_port + ": " + e.getMessage());
             }
 
         }
 
-
-        System.out.println("File information collected from all participants.");
-        System.out.println("File information list: " + fileInformationList.toString());
+        logger.info("All File information collected from all participants.");
         return fileInformationList;
     }
 }
