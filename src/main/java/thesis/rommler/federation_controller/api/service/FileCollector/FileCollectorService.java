@@ -179,7 +179,7 @@ public class FileCollectorService {
         byte[] buffer = new byte[1024];
         int bytesRead;
         int totalBytesRead = 0;
-        int threshold = 0;
+        int chunksRead = 0;
         while ((bytesRead = inputStream.read(buffer)) != -1) {
             totalBytesRead += bytesRead;
 
@@ -191,11 +191,11 @@ public class FileCollectorService {
                 break; // Stop reading when the end-of-file marker is received
             }
 
-            if(totalBytesRead > threshold){
-                threshold += 1000000;
+            if(chunksRead >= 10000){
+                chunksRead= 0;
                 logger.info("Progress: " + totalBytesRead + " Bytes read from [" + participantSocket.getInetAddress().toString() + ":" + participantSocket.getPort() + "].");
             }
-
+            chunksRead++;
         }
 
         inputStream.close();

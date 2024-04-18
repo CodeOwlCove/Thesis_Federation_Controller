@@ -47,6 +47,7 @@ public class Orchestrator {
 
     @GetMapping("/GetFiles")
     public String getFiles(@RequestParam String request_ip, @RequestParam int socket_port){
+        logger.info("- Get Files Called");
         fileTransferService.TransferFiles(request_ip, socket_port);
 
         GetFilesAnswer getFilesAnswer = new GetFilesAnswer();
@@ -56,6 +57,7 @@ public class Orchestrator {
         // Convert Java object to JSON
         ObjectMapper objectMapper = new ObjectMapper();
         try{
+            System.gc();
             return objectMapper.writeValueAsString(getFilesAnswer);
         } catch (Exception e){
             return "Error: " + e.getMessage();
@@ -79,6 +81,7 @@ public class Orchestrator {
         } finally {
             allFileCollectorService.DeleteOldZipFiles();
         }
+        System.gc();
     }
 
     @PostMapping("/GetSelectedFilesFrontend")
@@ -102,6 +105,7 @@ public class Orchestrator {
         } finally {
             allFileCollectorService.DeleteOldZipFiles();
         }
+        System.gc();
     }
 
     @PostMapping("/GetContract")
@@ -125,6 +129,7 @@ public class Orchestrator {
         } finally {
             allFileCollectorService.DeleteOldZipFiles();
         }
+        System.gc();
     }
 
 }

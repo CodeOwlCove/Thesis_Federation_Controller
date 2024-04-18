@@ -15,7 +15,7 @@ public class FileTransferService {
 
     private static final Logger logger = LoggerFactory.getLogger(FileTransferService.class);
 
-    private Socket socket;
+    private Socket participantSocket;
 
     public void TransferFiles(String requestIp, int socketPort) {
         ConnectToSocket(requestIp, socketPort);
@@ -24,13 +24,9 @@ public class FileTransferService {
     private void CollectFiles(){
         new Thread(() -> {
             try {
-                InputStream inputStream = socket.getInputStream();
+                var chunksRead = 0;
+                InputStream inputStream = participantSocket.getInputStream();
                 String outputPath = "F:\\Masterarbeit_Gits\\federation_controller\\Asset_Output\\output.zip";
-
-                // Read file name
-                // byte[] fileNameBytes = new byte[1024];
-                // int fileNameLength = inputStream.read(fileNameBytes);
-                // String fileName = new String(fileNameBytes, 0, fileNameLength);
 
                 //Delete Old File
                 if(new File(outputPath).exists()){
@@ -52,7 +48,12 @@ public class FileTransferService {
 
                     fileOutputStream.write(buffer, 0, bytesRead);
                     totalBytesRead += bytesRead;
-                    logger.info("Progress: " + totalBytesRead + " bytes read");
+
+                    if(chunksRead >= 10000){
+                        chunksRead = 0;
+                        logger.info("Progress: " + totalBytesRead + " Bytes read from [" + participantSocket.getInetAddress().toString() + ":" + participantSocket.getPort() + "].");
+                    }
+                    chunksRead++;
                 }
 
                 fileOutputStream.close();
@@ -66,7 +67,7 @@ public class FileTransferService {
 
     private void ConnectToSocket(String requestIp, int socketPort){
         try {
-            socket = new Socket(requestIp, socketPort);
+            participantSocket = new Socket(requestIp, socketPort);
             logger.info("Connected to socket.");
             CollectFiles();
         } catch (Exception e) {

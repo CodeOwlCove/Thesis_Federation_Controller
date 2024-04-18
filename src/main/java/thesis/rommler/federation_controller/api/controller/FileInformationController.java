@@ -27,6 +27,8 @@ public class FileInformationController {
         Gson gson = new GsonBuilder().create();
         String jsonString = gson.toJson(fileInformation);
 
+        System.gc();
+
         return jsonString;
     }
 
